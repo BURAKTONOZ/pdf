@@ -120,6 +120,7 @@ function undo(){if(!hist.length)return;pages=JSON.parse(hist.pop());render()}
 $('#bBlank').onclick=()=>{snap();pages.push({id:++uid,fi:-1,pn:0,rot:0,crop:null});render();scrollTo({top:1e6,behavior:'smooth'})};
 $('#bClear').onclick=()=>{if(confirm('Tüm sayfalar kaldırılsın mı?')){snap();pages=[];files=[];thumbs={};sel.clear();render()}};
 addEventListener('keydown',e=>{
+  if(document.querySelector('dialog[open]')||/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement||{}).tagName))return;
   if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo()}
   if((e.key==='Delete'||e.key==='Backspace')&&sel.size&&!$('#cd').open)act('d',[...sel]);
   if((e.ctrlKey||e.metaKey)&&e.key==='a'&&pages.length){e.preventDefault();pages.forEach(p=>sel.add(p.id));render()}
@@ -220,7 +221,7 @@ const kind=f=>{const e=ext(f.name);if(f.type==='application/pdf'||e==='pdf')retu
 function unsup(bad){
   alert('Bu dosyalar desteklenmiyor:\n• '+bad.map(f=>f.name).join('\n• ')+'\n\nDesteklenenler: PDF, Word (.docx), Excel (.xlsx .xls .csv), PowerPoint (.pptx, yalnızca metin), resimler, .txt .md .html .json ve benzeri metin dosyaları.\nEski .doc / .ppt dosyalarını Word veya PowerPoint’te “Farklı kaydet” ile .docx / .pptx ya da PDF yap.');
 }
-const LIB={h2c:['https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js','html2canvas'],docx:['https://cdn.jsdelivr.net/npm/docx-preview@0.3.5/dist/docx-preview.min.js','docx'],xlsx:['https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js','XLSX'],marked:['https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js','marked'],purify:['https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js','DOMPurify']};
+const LIB={h2c:['https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js','html2canvas'],docx:['https://cdn.jsdelivr.net/npm/docx-preview@0.3.5/dist/docx-preview.min.js','docx'],xlsx:['https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js','XLSX'],marked:['https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js','marked'],purify:['https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js','DOMPurify'],tess:['https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js','Tesseract']};
 const libs={};
 const need=(...ks)=>Promise.all(ks.map(k=>libs[k]||(libs[k]=new Promise((res,rej)=>{
   if(window[LIB[k][1]])return res();
@@ -389,6 +390,55 @@ $('#iO').onclick=()=>{
     else{const z=new JSZip();items.forEach(([n,b])=>z.file(n,b));await save('sayfalar-'+ext+'.zip',await z.generateAsync({type:'blob'}))}
   });
 };
+/* ---------- OCR (taranmış PDF ve resimlerden metin) ---------- */
+var mdList=[],mdTok=0,ocrW=null,ocrL='',ocrCache={},mdLabel='';
+const ocrKey=(p,l)=>p.id+'|'+p.rot+'|'+JSON.stringify(p.crop)+'|'+l;
+function mdProg(label,pct){
+  const b=$('#mProg');b.hidden=false;if(label!=null){mdLabel=label;$('#mPt').textContent=label}
+  const bar=$('#mPb');if(pct==null){bar.style.width='35%';bar.classList.add('ind')}else{bar.classList.remove('ind');bar.style.width=Math.round(pct*100)+'%'}
+}
+async function mdWork(fn){
+  const dlg=$('#md'),ctl=[...dlg.querySelectorAll('input,select,button')].filter(x=>x.id!=='mX');
+  ctl.forEach(x=>x.disabled=true);dlg.classList.add('wk');
+  try{await fn()}catch(err){alert('Bir hata oluştu: '+(err&&err.message||err))}
+  finally{ctl.forEach(x=>x.disabled=false);$('#mZip').disabled=mdList.length<2;dlg.classList.remove('wk');$('#mProg').hidden=true}
+}
+async function ocrWorker(lang){
+  await need('tess');
+  if(ocrW&&ocrL===lang)return ocrW;
+  if(ocrW){try{await ocrW.terminate()}catch(e){}ocrW=null}
+  mdProg('OCR motoru ve dil verisi indiriliyor… (ilk seferde biraz sürebilir)',null);
+  ocrW=await Tesseract.createWorker(lang.split('+'),1,{logger:m=>{if(m.status==='recognizing text')mdProg(null,m.progress)}});
+  ocrL=lang;return ocrW;
+}
+function ocrToMd(t){
+  const out=[];let para=[];
+  const flush=()=>{if(para.length){out.push(para.join(' ').replace(/\s+/g,' ').trim());para=[]}};
+  for(const raw of t.replace(/\r/g,'').split('\n')){
+    const l=raw.trim();
+    if(!l){flush();continue}
+    const b=l.match(/^[•●▪◦·*»›-]\s+(.+)/),n=l.match(/^(\d{1,3})[.)]\s+(.+)/);
+    if(b||n){flush();out.push({li:b?'- '+b[1]:n[1]+'. '+n[2]});continue}
+    if(para.length&&/\p{L}-$/u.test(para[para.length-1])&&/^\p{Ll}/u.test(l))para[para.length-1]=para[para.length-1].slice(0,-1)+l;else para.push(l);
+  }
+  flush();
+  let s='';out.forEach((b,i)=>{s+=(i?(b.li&&out[i-1].li?'\n':'\n\n'):'')+(typeof b==='string'?b:b.li)});
+  return s;
+}
+const needsOcr=d=>d===null||(Array.isArray(d)&&d.reduce((n,L)=>n+L.text.length,0)<20);
+async function mdOcrFill(tok){
+  if(!$('#mOcr').checked)return;
+  const lang=$('#mLang').value,todo=mdList.filter((p,i)=>p.fi>=0&&needsOcr(mdData[i])&&ocrCache[ocrKey(p,lang)]===undefined);
+  if(!todo.length)return;
+  const w=await ocrWorker(lang);
+  for(let k=0;k<todo.length;k++){
+    if(tok!==mdTok)return;
+    const p=todo[k];mdProg('OCR okunuyor: sayfa '+(k+1)+'/'+todo.length,0);
+    const r=await w.recognize(await pageBlob(p,250,'image/png'));
+    ocrCache[ocrKey(p,lang)]=ocrToMd(r.data.text||'');
+  }
+}
+
 /* PDF → Markdown dönüştürücü */
 var mdIds=[],mdData=[],mdParts=[];
 async function pageLines(p){
@@ -447,17 +497,19 @@ function renderMd(data,opt){
   return data.map(ls=>typeof ls==='string'?(ls.trim()||'<!-- Bu sayfada metin bulunamadı -->'):ls===null?'<!-- Görsel sayfa: metin yok -->':ls.length?renderPageMd(ls,body,opt):'<!-- Bu sayfada metin bulunamadı (taranmış veya boş olabilir) -->');
 }
 const mdOpt=()=>({tables:$('#mTbl').checked,sep:$('#mSep').checked});
-function mdGen(){const o=mdOpt();mdParts=renderMd(mdData,o);$('#mTxt').value=mdParts.join(o.sep?'\n\n---\n\n':'\n\n')}
+function mdGen(){const o=mdOpt(),on=$('#mOcr').checked,lang=$('#mLang').value;
+  const data=mdData.map((d,i)=>{const r=on&&mdList[i]?ocrCache[ocrKey(mdList[i],lang)]:undefined;return(typeof r==='string'&&r.trim()&&needsOcr(d))?r:d});
+  mdParts=renderMd(data,o);$('#mTxt').value=mdParts.join(o.sep?'\n\n---\n\n':'\n\n')}
 function openMd(ids){
-  mdIds=ids;
-  run('Metin okunuyor…',async()=>{
-    const list=pages.filter(p=>ids.includes(p.id));mdData=[];
-    for(const p of list)mdData.push(await pageLines(p));
-    $('#mn').textContent=list.length+' sayfa';$('#mZip').disabled=list.length<2;if(list.length<2)$('#mZip').checked=false;
-    mdGen();
-  }).then(()=>$('#md').showModal());
+  mdIds=ids;mdList=pages.filter(p=>ids.includes(p.id));mdData=[];mdParts=[];const tok=++mdTok;
+  $('#mn').textContent=mdList.length+' sayfa';$('#mTxt').value='';$('#md').showModal();
+  mdWork(async()=>{
+    for(let k=0;k<mdList.length;k++){if(tok!==mdTok)return;mdProg('Metin okunuyor… '+(k+1)+'/'+mdList.length,null);mdData.push(await pageLines(mdList[k]))}
+    await mdOcrFill(tok);if(tok!==mdTok)return;mdGen();
+  });
 }
 ['#mTbl','#mSep'].forEach(s=>$(s).onchange=mdGen);
+['#mOcr','#mLang'].forEach(s=>$(s).onchange=()=>{const tok=mdTok;mdWork(async()=>{await mdOcrFill(tok);mdGen()})});
 $('#bMd').onclick=()=>openMd(sel.size?[...sel]:pages.map(p=>p.id));
 $('#mX').onclick=()=>$('#md').close();
 $('#mC').onclick=async()=>{
