@@ -21,12 +21,15 @@ document.addEventListener('dragleave',e=>{if(isF(e)&&--dc<=0){dc=0;document.body
 document.addEventListener('drop',e=>{dc=0;document.body.classList.remove('fdrag');if(isF(e)&&e.dataTransfer.files.length){e.preventDefault();addFiles([...e.dataTransfer.files])}});
 
 async function addFiles(list){
-  list=list.filter(f=>f.type==='application/pdf'||f.type.startsWith('image/')||/\.pdf$/i.test(f.name));
-  if(!list.length)return;busy('Dosyalar okunuyor…');snap();
+  const bad=list.filter(f=>!kind(f));list=list.filter(kind);
+  if(!list.length){if(bad.length)unsup(bad);return}busy('Dosyalar okunuyor…');snap();
   for(const f of list){
     try{
       const color=COL[files.length%COL.length];
-      if(f.type.startsWith('image/')){
+      if(kind(f)==='doc'){
+        busy('“'+f.name+'” çevriliyor…');
+        (await convertDoc(f)).forEach((o,i)=>{files.push({...o,name:f.name,color,pnum:i+1});pages.push({id:++uid,fi:files.length-1,pn:1,rot:0,crop:null})});
+      }else if(kind(f)==='img'){
         const url=await new Promise((res,rej)=>{const u=URL.createObjectURL(f),im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;c.getContext('2d').drawImage(im,0,0);URL.revokeObjectURL(u);res({d:c.toDataURL('image/png'),w:c.width,h:c.height})};im.onerror=rej;im.src=u});
         files.push({name:f.name,img:url.d,w:url.w,h:url.h,color});
         pages.push({id:++uid,fi:files.length-1,pn:1,rot:0,crop:null});
@@ -36,9 +39,9 @@ async function addFiles(list){
         files.push({name:f.name,bytes,doc,color});
         for(let n=1;n<=doc.numPages;n++)pages.push({id:++uid,fi:files.length-1,pn:n,rot:0,crop:null});
       }
-    }catch(e){alert('“'+f.name+'” açılamadı.')}
+    }catch(err){alert('“'+f.name+'” açılamadı. '+(err&&err.message||''))}
   }
-  busy();render();loadThumbs();
+  busy();render();loadThumbs();if(bad.length)unsup(bad);
 }
 async function loadThumbs(){
   if(loading)return;loading=true;
@@ -46,7 +49,7 @@ async function loadThumbs(){
     for(;;){
       const p=pages.find(p=>p.fi>=0&&!thumbs[key(p)]);if(!p)break;
       const f=files[p.fi],k=key(p);
-      if(f.img)thumbs[k]={url:f.img,w:f.w,h:f.h};
+      if(f.img)thumbs[k]={url:f.th||f.img,w:f.w,h:f.h};
       else{
         const pg=await f.doc.getPage(p.pn),v=pg.getViewport({scale:1}),s=330/Math.max(v.width,v.height),vp=pg.getViewport({scale:s});
         const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;
@@ -76,9 +79,9 @@ function render(){
   $('#grid').innerHTML=pages.map((p,i)=>{
     const f=files[p.fi];
     return`<div class="card ${sel.has(p.id)?'sel':''}" draggable="${fine}" data-id="${p.id}"><div class="pv">${pvHTML(p)}</div><span class="num">${i+1}</span><span class="chk">✓</span>
-<div class="meta"><i style="background:${f?f.color:'#94a3b8'}"></i><span>${f?esc(f.name)+(f.doc?' · s.'+p.pn:''):'Boş sayfa'}</span>${p.crop?'<em>✂</em>':''}</div>
-<div class="acts"><button data-a="ml" title="Sola taşı">◀</button><button data-a="l" title="Sola döndür">⟲</button><button data-a="r" title="Sağa döndür">⟳</button><button data-a="mr" title="Sağa taşı">▶</button><button data-a="k" title="Kes">✂</button><button data-a="c" title="Kopyala">⧉</button><button data-a="d" title="Sil">🗑</button></div></div>`}).join('')+`<button class="addc" title="PDF veya resim ekle"><b>＋</b><span>PDF veya resim ekle</span></button>`;
-  $('#st').textContent=pages.length+' sayfa · '+files.length+' dosya'+(sel.size?' · '+sel.size+' seçili':'');
+<div class="meta"><i style="background:${f?f.color:'#94a3b8'}"></i><span>${f?esc(f.name)+(f.doc?' · s.'+p.pn:f.pnum?' · s.'+f.pnum:''):'Boş sayfa'}</span>${p.crop?'<em>✂</em>':''}</div>
+<div class="acts"><button data-a="ml" title="Sola taşı">◀</button><button data-a="l" title="Sola döndür">⟲</button><button data-a="r" title="Sağa döndür">⟳</button><button data-a="mr" title="Sağa taşı">▶</button><button data-a="k" title="Kes">✂</button><button data-a="c" title="Kopyala">⧉</button><button data-a="d" title="Sil">🗑</button></div></div>`}).join('')+`<button class="addc" title="Dosya ekle"><b>＋</b><span>Dosya ekle<br><small>PDF, Word, Excel, resim…</small></span></button>`;
+  $('#st').textContent=pages.length+' sayfa · '+files.filter(f=>!f.pnum||f.pnum===1).length+' dosya'+(sel.size?' · '+sel.size+' seçili':'');
   $('#bulk').classList.toggle('on',sel.size>0);document.body.classList.toggle('bar',sel.size>0);$('#bc').textContent=sel.size+' seçili';
   $('#bUndo').disabled=$('#dUndo').disabled=!hist.length;
 }
@@ -188,7 +191,7 @@ async function build(list){
   for(const p of list){
     if(p.fi<0){const pg=out.addPage([595.28,841.89]);pg.setRotation(degrees(p.rot));setCrop(pg,p.crop,0);continue}
     const f=files[p.fi];
-    if(f.img){const im=await out.embedPng(f.img),pg=out.addPage([im.width,im.height]);pg.drawImage(im,{x:0,y:0,width:im.width,height:im.height});pg.setRotation(degrees(p.rot));setCrop(pg,p.crop,0);continue}
+    if(f.img){const im=await out.embedPng(f.img),W=f.pw||im.width,H=f.ph||im.height,pg=out.addPage([W,H]);pg.drawImage(im,{x:0,y:0,width:W,height:H});pg.setRotation(degrees(p.rot));setCrop(pg,p.crop,0);continue}
     cache[p.fi]??=await PDFDocument.load(f.bytes,{ignoreEncryption:true});
     const[pg]=await out.copyPages(cache[p.fi],[p.pn-1]),r0=pg.getRotation().angle;
     pg.setRotation(degrees((r0+p.rot)%360));setCrop(pg,p.crop,r0);out.addPage(pg);
@@ -209,6 +212,149 @@ function dlZip(){run('ZIP hazırlanıyor…',async()=>{
   for(let i=0;i<list.length;i++)z.file('sayfa-'+String(i+1).padStart(w,'0')+'.pdf',await build([list[i]]));
   save('sayfalar.zip',await z.generateAsync({type:'blob'}));
 })}
+/* ---------- Word / Excel / PowerPoint / metin dosyaları → sayfa ---------- */
+const ext=n=>(n.split('.').pop()||'').toLowerCase();
+const CODE=['json','xml','yml','yaml','ini','js','css','py','sql','log','conf','toml'];
+const CONV=['docx','xlsx','xls','xlsm','ods','csv','tsv','txt','md','markdown','html','htm','pptx',...CODE];
+const kind=f=>{const e=ext(f.name);if(f.type==='application/pdf'||e==='pdf')return'pdf';if(f.type.startsWith('image/'))return'img';return CONV.includes(e)?'doc':null};
+function unsup(bad){
+  alert('Bu dosyalar desteklenmiyor:\n• '+bad.map(f=>f.name).join('\n• ')+'\n\nDesteklenenler: PDF, Word (.docx), Excel (.xlsx .xls .csv), PowerPoint (.pptx, yalnızca metin), resimler, .txt .md .html .json ve benzeri metin dosyaları.\nEski .doc / .ppt dosyalarını Word veya PowerPoint’te “Farklı kaydet” ile .docx / .pptx ya da PDF yap.');
+}
+const LIB={h2c:['https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js','html2canvas'],docx:['https://cdn.jsdelivr.net/npm/docx-preview@0.3.5/dist/docx-preview.min.js','docx'],xlsx:['https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js','XLSX'],marked:['https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js','marked'],purify:['https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js','DOMPurify']};
+const libs={};
+const need=(...ks)=>Promise.all(ks.map(k=>libs[k]||(libs[k]=new Promise((res,rej)=>{
+  if(window[LIB[k][1]])return res();
+  const s=document.createElement('script');s.src=LIB[k][0];s.onload=res;
+  s.onerror=()=>{delete libs[k];rej(new Error('Gerekli kütüphane yüklenemedi ('+k+'). İnternet bağlantını kontrol et.'))};document.head.appendChild(s)}))));
+
+/* HTML → Markdown (Word, Excel, md, html sayfaları için) */
+function domToMd(root){
+  const wrap=(x,m)=>{const t=x.trim();return t?(/^\s/.test(x)?' ':'')+m+t+m+(/\s$/.test(x)?' ':''):x};
+  function inl(n){
+    let o='';
+    n.childNodes.forEach(c=>{
+      if(c.nodeType===3)o+=c.textContent.replace(/\s+/g,' ');
+      else if(c.nodeType===1){
+        const t=c.tagName.toLowerCase();if(/^(script|style|img|svg)$/.test(t))return;
+        const x=inl(c);
+        if(t==='strong'||t==='b')o+=wrap(x,'**');
+        else if(t==='em'||t==='i')o+=wrap(x,'*');
+        else if(t==='code')o+='`'+x+'`';
+        else if(t==='a'&&c.getAttribute('href')&&x.trim())o+='['+x.trim()+']('+c.getAttribute('href')+')';
+        else if(t==='br')o+='  \n';
+        else o+=x;
+      }
+    });return o;
+  }
+  const list=(l,ord,ind)=>{let i=0;return[...l.children].filter(li=>li.tagName==='LI').map(li=>{i++;
+    const cl=li.cloneNode(true),subs=[...li.children].filter(x=>/^(UL|OL)$/.test(x.tagName));cl.querySelectorAll('ul,ol').forEach(x=>x.remove());
+    let s=ind+(ord?i+'. ':'- ')+inl(cl).trim();subs.forEach(u=>s+='\n'+list(u,u.tagName==='OL',ind+'  '));return s}).join('\n')};
+  const tbl=t=>{const rows=[...t.querySelectorAll('tr')].map(r=>[...r.children].map(c=>inl(c).replace(/\|/g,'\\|').replace(/\s+/g,' ').trim()));
+    if(!rows.length)return'';const n=Math.max(...rows.map(r=>r.length)),row=r=>'| '+Array.from({length:n},(_,i)=>r[i]||'').join(' | ')+' |';
+    return[row(rows[0]),'|'+' --- |'.repeat(n),...rows.slice(1).map(row)].join('\n')};
+  function blk(n){
+    const out=[];
+    n.childNodes.forEach(c=>{
+      if(c.nodeType===3){const t=c.textContent.trim();if(t)out.push(t);return}
+      if(c.nodeType!==1)return;
+      const t=c.tagName.toLowerCase();
+      if(/^(script|style|img|svg|header|footer)$/.test(t))return;
+      if(/^h[1-6]$/.test(t)){const x=inl(c).trim();if(x)out.push('#'.repeat(+t[1])+' '+x)}
+      else if(t==='ul'||t==='ol')out.push(list(c,t==='ol',''));
+      else if(t==='table')out.push(tbl(c));
+      else if(t==='pre')out.push('```\n'+c.textContent.replace(/\n$/,'')+'\n```');
+      else if(t==='blockquote')out.push(blk(c).join('\n\n').split('\n').map(l=>'> '+l).join('\n'));
+      else if(t==='hr')out.push('---');
+      else if(c.querySelector('p,h1,h2,h3,h4,h5,h6,ul,ol,table,pre,div,blockquote'))out.push(...blk(c));
+      else{const x=inl(c).trim();if(x)out.push(x)}
+    });return out;
+  }
+  return blk(root).filter(Boolean).join('\n\n');
+}
+const small=c=>{const s=330/Math.max(c.width,c.height),t=document.createElement('canvas');t.width=Math.max(1,c.width*s);t.height=Math.max(1,c.height*s);t.getContext('2d').drawImage(c,0,0,t.width,t.height);return t.toDataURL('image/jpeg',.8)};
+
+async function convertDoc(file){
+  const e=ext(file.name),out=[];
+  await need('h2c');
+  const stage=document.createElement('div');stage.id='stage';document.body.appendChild(stage);
+  const snap=async(el,pw,ph,md,i,n)=>{
+    busy('“'+file.name+'” çevriliyor… '+(i+1)+'/'+n);
+    const c=await html2canvas(el,{scale:2,backgroundColor:'#fff',logging:false});
+    out.push({img:c.toDataURL('image/png'),th:small(c),w:c.width,h:c.height,pw,ph,md});
+  };
+  try{
+    if(e==='docx'){
+      await need('docx');
+      await docx.renderAsync(await file.arrayBuffer(),stage,null,{className:'docx',inWrapper:false,breakPages:true,useBase64URL:true,ignoreLastRenderedPageBreak:false});
+      await document.fonts.ready;
+      let secs=[...stage.querySelectorAll('section.docx')];if(!secs.length)secs=[stage];
+      for(let i=0;i<secs.length;i++){const s=secs[i];await snap(s,s.offsetWidth*.75,s.offsetHeight*.75,domToMd(s),i,secs.length)}
+    }else{
+      let src=document.createElement('div'),land=false,mono=false,plain=false;
+      if(e==='pptx'){
+        const z=await JSZip.loadAsync(await file.arrayBuffer());land=true;
+        const names=Object.keys(z.files).filter(n=>/^ppt\/slides\/slide\d+\.xml$/.test(n)).sort((a,b)=>a.match(/\d+/)[0]-b.match(/\d+/)[0]);
+        for(const n of names){
+          const x=new DOMParser().parseFromString(await z.file(n).async('string'),'application/xml'),d=document.createElement('div');d.dataset.brk='1';
+          [...x.getElementsByTagNameNS('*','p')].forEach(p=>{const t=[...p.getElementsByTagNameNS('*','t')].map(a=>a.textContent).join('').trim();if(!t)return;const el=document.createElement(d.childElementCount?'p':'h1');el.textContent=t;d.appendChild(el)});
+          if(!d.childElementCount)d.innerHTML='<p style="color:#888">(Bu slaytta metin yok)</p>';
+          src.appendChild(d);
+        }
+      }else if(['xlsx','xls','xlsm','ods','csv','tsv'].includes(e)){
+        await need('xlsx');land=true;const txt=e==='csv'||e==='tsv';
+        const wb=XLSX.read(txt?await file.text():await file.arrayBuffer(),txt?(e==='tsv'?{type:'string',FS:'\t'}:{type:'string'}):{type:'array'});
+        wb.SheetNames.forEach(sn=>{const h=document.createElement('h2');h.textContent=sn;h.dataset.brk='1';src.appendChild(h);
+          const t=new DOMParser().parseFromString(XLSX.utils.sheet_to_html(wb.Sheets[sn]),'text/html').querySelector('table');if(t)src.appendChild(t)});
+      }else if(e==='md'||e==='markdown'){
+        await need('marked','purify');src.innerHTML=DOMPurify.sanitize(marked.parse(await file.text()));
+      }else if(e==='html'||e==='htm'){
+        await need('purify');src.innerHTML=DOMPurify.sanitize(await file.text(),{FORBID_TAGS:['style','link','meta','iframe','form','input','button','video','audio','object','embed']});
+      }else{
+        plain=true;mono=CODE.includes(e);
+        (await file.text()).replace(/\r/g,'').split('\n').forEach(l=>{const d=document.createElement('div');d.className='ln';d.textContent=l.replace(/\t/g,'    ');src.appendChild(d)});
+      }
+      src.querySelectorAll('img').forEach(i=>{if(!/^data:/.test(i.getAttribute('src')||''))i.remove()});
+      [...src.childNodes].forEach(n=>{if(n.nodeType===3){if(n.textContent.trim()){const p=document.createElement('p');p.textContent=n.textContent;src.replaceChild(p,n)}else src.removeChild(n)}});
+      while(src.children.length===1&&/^(DIV|SECTION|ARTICLE|MAIN|BODY)$/.test(src.firstElementChild.tagName)&&!src.firstElementChild.dataset.brk)src=src.firstElementChild;
+
+      /* sayfalara bölme */
+      const pgs=[];let cur;
+      const mk=()=>{const pg=document.createElement('div');pg.className='pg'+(land?' land':'')+(mono?' mono':'');const inn=document.createElement('div');inn.className='in';pg.appendChild(inn);stage.appendChild(pg);pgs.push(pg);return inn};
+      const full=()=>cur.scrollHeight>cur.clientHeight+1,newPg=()=>{cur=mk()},put=n=>{cur.appendChild(n);return!full()};
+      cur=mk();
+      function place(b){
+        if(b.dataset&&b.dataset.brk&&cur.childElementCount)newPg();
+        if(put(b))return;
+        cur.removeChild(b);
+        if(cur.childElementCount){newPg();if(put(b))return;cur.removeChild(b)}
+        const tag=b.tagName,isT=tag==='TABLE',isL=tag==='UL'||tag==='OL',isP=tag==='PRE';
+        if(/^(DIV|SECTION|ARTICLE|MAIN|HEADER|FOOTER)$/.test(tag)&&b.children.length>1){[...b.children].forEach(place);return}
+        if(!(isT||isL||isP)){cur.appendChild(b);return}
+        const items=isT?[...b.rows].filter(r=>r.parentNode.tagName!=='THEAD'):isL?[...b.children]:b.textContent.split('\n');
+        let host;
+        const fresh=()=>{const sh=b.cloneNode(false);if(isT){if(b.tHead)sh.appendChild(b.tHead.cloneNode(true));host=sh.appendChild(document.createElement('tbody'))}else host=sh;cur.appendChild(sh)};
+        fresh();
+        for(const it of items){
+          if(isP){const prev=host.textContent;host.textContent=prev+it+'\n';if(full()&&prev){host.textContent=prev;newPg();fresh();host.textContent=it+'\n'}}
+          else{host.appendChild(it);if(full()&&host.childElementCount>1){host.removeChild(it);newPg();fresh();host.appendChild(it)}}
+        }
+      }
+      [...src.children].forEach(place);
+      await document.fonts.ready;
+      const real=pgs.filter(p=>p.firstChild.childElementCount);
+      if(!real.length)throw new Error('Dosyada gösterilecek içerik yok.');
+      if(real.length>400)throw new Error('Dosya çok büyük (400 sayfadan fazla).');
+      for(let i=0;i<real.length;i++){
+        const inn=real[i].firstChild;
+        const md=plain?(mono?'```\n':'')+[...inn.children].map(c=>c.textContent).join('\n').trim()+(mono?'\n```':''):domToMd(inn);
+        await snap(real[i],(land?841.89:595.28),(land?595.28:841.89),md,i,real.length);
+      }
+    }
+  }finally{stage.remove()}
+  if(!out.length)throw new Error('İçerik okunamadı.');
+  return out;
+}
+
 /* JPG / PNG olarak indirme */
 var imgIds=[];
 const loadImg=u=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=u});
@@ -247,7 +393,7 @@ $('#iO').onclick=()=>{
 var mdIds=[],mdData=[],mdParts=[];
 async function pageLines(p){
   if(p.fi<0)return[];
-  const f=files[p.fi];if(f.img)return null;
+  const f=files[p.fi];if(f.img)return typeof f.md==='string'?f.md:null;
   const pg=await f.doc.getPage(p.pn),vp=pg.getViewport({scale:1}),tc=await pg.getTextContent(),U=pdfjsLib.Util;
   const c=p.crop||{l:0,t:0,r:0,b:0},x0=c.l*vp.width,x1=vp.width*(1-c.r),y0=c.t*vp.height,y1=vp.height*(1-c.b),its=[];
   for(const it of tc.items){
@@ -296,9 +442,9 @@ function renderPageMd(ls,body,opt){
   return out;
 }
 function renderMd(data,opt){
-  const sz={};data.forEach(ls=>(ls||[]).forEach(L=>{const k=Math.round(L.size*2)/2;sz[k]=(sz[k]||0)+L.text.length}));
+  const sz={};data.forEach(ls=>Array.isArray(ls)&&ls.forEach(L=>{const k=Math.round(L.size*2)/2;sz[k]=(sz[k]||0)+L.text.length}));
   const body=+Object.keys(sz).sort((a,b)=>sz[b]-sz[a])[0]||12;
-  return data.map(ls=>ls===null?'<!-- Görsel sayfa: metin yok -->':ls.length?renderPageMd(ls,body,opt):'<!-- Bu sayfada metin bulunamadı (taranmış veya boş olabilir) -->');
+  return data.map(ls=>typeof ls==='string'?(ls.trim()||'<!-- Bu sayfada metin bulunamadı -->'):ls===null?'<!-- Görsel sayfa: metin yok -->':ls.length?renderPageMd(ls,body,opt):'<!-- Bu sayfada metin bulunamadı (taranmış veya boş olabilir) -->');
 }
 const mdOpt=()=>({tables:$('#mTbl').checked,sep:$('#mSep').checked});
 function mdGen(){const o=mdOpt();mdParts=renderMd(mdData,o);$('#mTxt').value=mdParts.join(o.sep?'\n\n---\n\n':'\n\n')}
