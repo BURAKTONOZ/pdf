@@ -88,6 +88,7 @@ function act(a,ids){
   const L=pages.filter(p=>ids.includes(p.id));if(!L.length)return;
   if(a==='k'){openCrop(L[0].id);return}
   if(a==='i'){openImg(ids);return}
+  if(a==='m'){openMd(ids);return}
   snap();
   if(a==='l')L.forEach(p=>rot(p,-90));
   if(a==='r')L.forEach(p=>rot(p,90));
@@ -241,5 +242,89 @@ $('#iO').onclick=()=>{
     if(items.length===1||mode==='sep'){for(const[n,b]of items){await save(n,b);await new Promise(r=>setTimeout(r,400))}}
     else{const z=new JSZip();items.forEach(([n,b])=>z.file(n,b));await save('sayfalar-'+ext+'.zip',await z.generateAsync({type:'blob'}))}
   });
+};
+/* PDF → Markdown dönüştürücü */
+var mdIds=[],mdData=[],mdParts=[];
+async function pageLines(p){
+  if(p.fi<0)return[];
+  const f=files[p.fi];if(f.img)return null;
+  const pg=await f.doc.getPage(p.pn),vp=pg.getViewport({scale:1}),tc=await pg.getTextContent(),U=pdfjsLib.Util;
+  const c=p.crop||{l:0,t:0,r:0,b:0},x0=c.l*vp.width,x1=vp.width*(1-c.r),y0=c.t*vp.height,y1=vp.height*(1-c.b),its=[];
+  for(const it of tc.items){
+    if(!it.str||!it.str.trim())continue;
+    const t=U.transform(vp.transform,it.transform),size=Math.hypot(t[2],t[3])||Math.hypot(t[0],t[1]),x=t[4],y=t[5];
+    if(x<x0||x>x1||y<y0||y>y1)continue;
+    its.push({s:it.str,x,y,w:it.width,size});
+  }
+  its.sort((a,b)=>a.y-b.y||a.x-b.x);
+  const lines=[];
+  for(const it of its){const L=lines[lines.length-1];
+    if(L&&Math.abs(it.y-L.y)<=Math.max(it.size,L.size)*.45){L.its.push(it);L.size=Math.max(L.size,it.size)}
+    else lines.push({y:it.y,size:it.size,its:[it]})}
+  for(const L of lines){
+    L.its.sort((a,b)=>a.x-b.x);
+    const segs=[];let cur='',end=null,txt='';
+    for(const it of L.its){
+      if(end!==null){const gap=it.x-end,sp=gap>L.size*.12&&!/\s$/.test(txt)&&!/^\s/.test(it.s);
+        if(gap>L.size*2.2){segs.push(cur.trim());cur=''}else if(sp)cur+=' ';
+        if(sp)txt+=' '}
+      cur+=it.s;txt+=it.s;end=it.x+it.w;
+    }
+    segs.push(cur.trim());L.segs=segs.filter(Boolean);L.text=txt.replace(/\s+/g,' ').trim();L.x=L.its[0].x;delete L.its;
+  }
+  return lines.filter(L=>L.text);
+}
+function renderPageMd(ls,body,opt){
+  const blocks=[];let para=[],tbl=[],prev=null,list=null;
+  const flushP=()=>{if(para.length){blocks.push({t:para.join(' ').replace(/\s+/g,' ').trim()});para=[]}};
+  const flushT=()=>{if(!tbl.length)return;const n=Math.max(...tbl.map(r=>r.length)),row=r=>'| '+Array.from({length:n},(_,i)=>(r[i]||'').replace(/\|/g,'\\|')).join(' | ')+' |';
+    blocks.push({t:[row(tbl[0]),'|'+' --- |'.repeat(n),...tbl.slice(1).map(row)].join('\n')});tbl=[]};
+  for(const L of ls){
+    const t=L.text,gap=prev?L.y-prev.y:0,lh=Math.max(L.size,prev?prev.size:0),near=prev&&gap<lh*1.7;
+    if(opt.tables&&L.segs.length>=2){flushP();list=null;tbl.push(L.segs);prev=L;continue}
+    flushT();
+    const r=L.size/body,bl=t.match(/^([•▪●◦·■○►]\s*|[–—*-]\s+)(.+)/),nl=t.match(/^(\d{1,3})[.)]\s+(.+)/);
+    if(r>=1.18&&t.length<140){flushP();list=null;blocks.push({t:'#'.repeat(r>=1.8?1:r>=1.4?2:3)+' '+t})}
+    else if(bl||nl){flushP();list={t:bl?'- '+bl[2]:nl[1]+'. '+nl[2],list:1};blocks.push(list)}
+    else if(list&&near&&L.x>prev.x-1){list.t+=' '+t}
+    else{list=null;if(para.length&&!near)flushP();
+      if(para.length&&/\p{L}-$/u.test(para[para.length-1])&&/^\p{Ll}/u.test(t))para[para.length-1]=para[para.length-1].slice(0,-1)+t;else para.push(t)}
+    prev=L;
+  }
+  flushP();flushT();
+  let out='';blocks.forEach((b,i)=>{out+=(i?(b.list&&blocks[i-1].list?'\n':'\n\n'):'')+b.t});
+  return out;
+}
+function renderMd(data,opt){
+  const sz={};data.forEach(ls=>(ls||[]).forEach(L=>{const k=Math.round(L.size*2)/2;sz[k]=(sz[k]||0)+L.text.length}));
+  const body=+Object.keys(sz).sort((a,b)=>sz[b]-sz[a])[0]||12;
+  return data.map(ls=>ls===null?'<!-- Görsel sayfa: metin yok -->':ls.length?renderPageMd(ls,body,opt):'<!-- Bu sayfada metin bulunamadı (taranmış veya boş olabilir) -->');
+}
+const mdOpt=()=>({tables:$('#mTbl').checked,sep:$('#mSep').checked});
+function mdGen(){const o=mdOpt();mdParts=renderMd(mdData,o);$('#mTxt').value=mdParts.join(o.sep?'\n\n---\n\n':'\n\n')}
+function openMd(ids){
+  mdIds=ids;
+  run('Metin okunuyor…',async()=>{
+    const list=pages.filter(p=>ids.includes(p.id));mdData=[];
+    for(const p of list)mdData.push(await pageLines(p));
+    $('#mn').textContent=list.length+' sayfa';$('#mZip').disabled=list.length<2;if(list.length<2)$('#mZip').checked=false;
+    mdGen();
+  }).then(()=>$('#md').showModal());
+}
+['#mTbl','#mSep'].forEach(s=>$(s).onchange=mdGen);
+$('#bMd').onclick=()=>openMd(sel.size?[...sel]:pages.map(p=>p.id));
+$('#mX').onclick=()=>$('#md').close();
+$('#mC').onclick=async()=>{
+  const t=$('#mTxt').value,b=$('#mC');
+  try{await navigator.clipboard.writeText(t)}catch(e){$('#mTxt').select();document.execCommand('copy')}
+  b.textContent='Kopyalandı ✓';setTimeout(()=>b.textContent='⧉ Kopyala',1500);
+};
+$('#mO').onclick=()=>{
+  const base=((files.find(f=>f.name)||{}).name||'belge').replace(/\.[^.]+$/,'');
+  if($('#mZip').checked&&mdParts.length>1){
+    run('ZIP hazırlanıyor…',async()=>{const z=new JSZip(),w=String(mdParts.length).length;
+      mdParts.forEach((t,i)=>z.file('sayfa-'+String(i+1).padStart(w,'0')+'.md',t));
+      await save(base+'-markdown.zip',await z.generateAsync({type:'blob'}))});
+  }else save(base+'.md',new Blob([$('#mTxt').value],{type:'text/markdown;charset=utf-8'}));
 };
 render();
