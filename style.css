@@ -133,3 +133,8 @@ body.fdrag .fd{display:grid}
 .pg code{font:12px ui-monospace,Consolas,monospace}.pg img{max-width:100%}.pg blockquote{margin:0 0 10px;padding-left:12px;border-left:4px solid #ccc;color:#444}
 .pg .ln{white-space:pre-wrap;min-height:1.55em}.pg.mono .ln{font:12px/1.5 ui-monospace,Consolas,monospace}
 .addc small{font-size:12px;opacity:.8}
+
+/* OCR ilerleme çubuğu */
+.bar{height:8px;border-radius:99px;background:var(--bd);overflow:hidden}.bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--ac),#ec4899);transition:width .25s}
+.bar i.ind{animation:ind 1.2s ease-in-out infinite alternate}@keyframes ind{from{margin-left:0}to{margin-left:65%}}
+#md.wk .mt{opacity:.5}.opts select{padding:6px 8px;border-radius:9px;border:1px solid var(--bd);background:var(--solid);color:var(--tx);font:inherit}
