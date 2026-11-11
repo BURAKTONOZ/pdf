@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>PDF, Word Düzenleyici ve OCR: Birleştir, Böl, JPG’den Yazı Çıkar, Markdown | PDF Atölyesi</title>
-<meta name="description" content="Ücretsiz online PDF düzenleyici ve OCR: PDF, Word (docx), Excel ve resimleri birleştir, taranmış PDF ve resimlerden yazı çıkar, böl, sırala, döndür, sil, kes ve sayfaları JPG, PNG veya Markdown (.md) olarak indir. Dosyaların cihazından çıkmaz, kayıt gerektirmez. Telefon ve bilgisayarda çalışır.">
-<meta name="keywords" content="pdf birleştir, pdf böl, pdf sayfa sil, pdf döndür, pdf kes, pdf sırala, pdf düzenleme, ücretsiz pdf düzenleyici, online pdf, pdf ocr, resimden yazı çıkarma, jpg metne çevir, taranmış pdf metne çevir, word pdf çevir, docx pdf birleştir, excel pdf çevir, pdf markdown çevir, pdf to markdown, pdf md, pdf jpg çevir, pdf png çevir, pdf resme çevir, pdf merge, pdf split">
+<title>PDF’i Word’e Çevir, PDF Düzenleyici ve OCR: Birleştir, Böl, JPG, Markdown | PDF Atölyesi</title>
+<meta name="description" content="Ücretsiz online PDF düzenleyici: PDF’i Word’e (docx) çevir, birleştir, böl, sırala, döndür, kes. Taranmış PDF ve resimlerden OCR ile yazı çıkar; JPG, PNG, Markdown olarak indir. Dosyaların cihazından çıkmaz.">
+<meta name="keywords" content="pdf birleştir, pdf böl, pdf sayfa sil, pdf döndür, pdf kes, pdf sırala, pdf düzenleme, ücretsiz pdf düzenleyici, online pdf, pdf word çevir, pdf to word, pdf docx, resimden word, pdf ocr, resimden yazı çıkarma, jpg metne çevir, taranmış pdf metne çevir, word pdf çevir, docx pdf birleştir, excel pdf çevir, pdf markdown çevir, pdf to markdown, pdf md, pdf jpg çevir, pdf png çevir, pdf resme çevir, pdf merge, pdf split">
 <meta name="author" content="Tonoz">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="theme-color" content="#6366f1">
@@ -18,113 +18,227 @@
 <meta property="og:locale" content="tr_TR">
 <meta property="og:site_name" content="PDF Atölyesi">
 <meta property="og:title" content="PDF Atölyesi – Ücretsiz Online PDF Düzenleyici">
-<meta property="og:description" content="PDF birleştir, böl, sırala, döndür, sil, kes; JPG, PNG veya Markdown olarak indir. Tarayıcıda çalışır, dosyaların cihazından çıkmaz.">
+<meta property="og:description" content="PDF birleştir, böl, sırala, döndür, sil, kes; Word, JPG, PNG veya Markdown olarak indir. Tarayıcıda çalışır, dosyaların cihazından çıkmaz.">
 <meta property="og:url" content="https://buraktonoz.com/pdf/">
 <meta property="og:image" content="https://buraktonoz.com/pdf/og.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="PDF Atölyesi – Ücretsiz Online PDF Düzenleyici">
 <meta name="twitter:description" content="PDF birleştir, böl, sırala, döndür, sil ve kes. Kayıt yok, yükleme yok.">
-<meta name="twitter:image" content="https://buraktonoz.com/pdf/og.png">
+<meta property="twitter:image" content="https://buraktonoz.com/pdf/og.png">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebApplication","name":"PDF Atölyesi","url":"https://buraktonoz.com/pdf/","applicationCategory":"UtilitiesApplication","operatingSystem":"Any","inLanguage":"tr","description":"PDF dosyalarını birleştirme, bölme, sıralama, döndürme, silme, kesme ve JPG/PNG/Markdown’a çevirme aracı. Tamamen tarayıcıda çalışır.","offers":{"@type":"Offer","price":"0","priceCurrency":"TRY"},"creator":{"@type":"Person","name":"Tonoz"}}
+{"@context":"https://schema.org","@type":"WebApplication","name":"PDF Atölyesi","url":"https://buraktonoz.com/pdf/","applicationCategory":"UtilitiesApplication","operatingSystem":"Any","inLanguage":"tr","description":"PDF dosyalarını birleştirme, bölme, sıralama, döndürme, silme, kesme ve Word/JPG/PNG/Markdown’a çevirme aracı. Tamamen tarayıcıda çalışır.","offers":{"@type":"Offer","price":"0","priceCurrency":"TRY"},"creator":{"@type":"Person","name":"Tonoz"}}
 </script>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="bg" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
 <header>
-  <div class="logo"><i>▤</i>PDF Atölyesi</div>
+  <div class="logo" id="logoBtn" title="Ana sayfa"><i>▤</i><span>PDF Atölyesi<small>Pro Stüdyo</small></span></div>
   <div id="hb">
-    <button class="btn" id="bAdd">＋ Dosya ekle</button>
-    <button class="btn" id="bBlank">▢ Boş sayfa</button>
-    <button class="btn" id="bImg">🖼 JPG / PNG</button>
-    <button class="btn" id="bMd">📝 Markdown / OCR</button>
-    <button class="btn" id="bAll">☑ Tümünü seç</button>
-    <button class="btn" id="bUndo">↶ Geri al</button>
-    <button class="btn dg" id="bClear">🗑 Temizle</button>
-    <button class="btn pri" id="bDl">⬇ PDF’i indir</button>
+    <div class="tgrp">
+      <button class="btn" id="bAdd" title="Yeni dosya ekle">＋ Dosya ekle</button>
+      <button class="btn" id="bBlank" title="Boş A4 sayfası ekle">▢ Boş sayfa</button>
+    </div>
+    <div class="tgrp">
+      <button class="btn" id="bAll" title="Tüm sayfaları seç / bırak (Ctrl+A)">☑ Tümünü seç</button>
+      <button class="btn" id="bUndo" title="Son işlemi geri al (Ctrl+Z)">↶ Geri al</button>
+      <button class="btn" id="bRedo" title="İleri al (Ctrl+Y)" disabled>↷ İleri al</button>
+      <button class="btn dg" id="bClear" title="Tüm sayfaları temizle">🗑 Temizle</button>
+    </div>
+    <div class="tgrp">
+      <button class="btn word-btn" id="bWord" title="Tabloları ve biçimlendirmeyi koruyarak Word (.docx) olarak indir">📄 Word’e çevir</button>
+      <button class="btn" id="bMd" title="Metin ve OCR önizleme / Markdown indir">📝 Markdown / OCR</button>
+      <button class="btn" id="bImg" title="Sayfaları JPG veya PNG olarak indir">🖼 JPG / PNG</button>
+      <button class="btn pri" id="bDl" title="Düzenlenmiş PDF dosyasını indir">⬇ PDF’i indir</button>
+    </div>
   </div>
-  <button class="btn" id="bTheme" title="Tema değiştir" aria-label="Tema değiştir">◐</button>
+  <button class="btn icon-btn" id="bTheme" title="Açık / Koyu tema değiştir" aria-label="Tema değiştir">◐</button>
 </header>
 <input type="file" id="fi" multiple hidden>
 
 <section id="drop">
   <div class="zone" id="zone" role="button" tabindex="0">
     <div class="ic">⇪</div>
-    <h1>PDF ve Word dosyalarını buraya bırak</h1>
-    <p>veya dokunup seç · PDF, Word, Excel, PowerPoint, resim, TXT, MD, HTML, CSV… birden fazla dosya olabilir</p>
-    <div class="feat"><span>PDF</span><span>Word</span><span>Excel</span><span>Birleştir</span><span>Sırala</span><span>Döndür</span><span>Sil</span><span>Böl</span><span>Kes</span><span>JPG / PNG</span><span>Markdown (.md)</span><span>OCR</span><span>🔒 Dosyaların cihazından çıkmaz</span></div>
+    <h1>PDF, Word ve Görsel Dosyalarını Buraya Bırak</h1>
+    <p>veya tıklayıp bilgisayarından seç · PDF, Word, Excel, PowerPoint, resim, TXT, MD, HTML, CSV…</p>
+    <div class="feat">
+      <span class="hi">📄 Birebir PDF → Word (.docx)</span>
+      <span class="hi">📊 Tablo & Biçim Koruma</span>
+      <span>Birleştir & Böl</span>
+      <span>Sürükle Sırala</span>
+      <span>Döndür & Kırp</span>
+      <span>JPG / PNG Çıktı</span>
+      <span>Markdown & Türkçe OCR</span>
+      <span class="sec">🔒 %100 Tarayıcıda · Dosyaların Cihazından Çıkmaz</span>
+    </div>
+  </div>
+  <div class="quick-cards">
+    <div class="qcard">
+      <b>📄 Kusursuz PDF → Word</b>
+      <p>Tabloları, birleşik hücreleri, yazı tiplerini, kalınlıkları, renkleri ve hizalamaları bozmadan düzenlenebilir Word (.docx) belgesine dönüştürür.</p>
+    </div>
+    <div class="qcard">
+      <b>✂ Hassas Kırpma & Düzenleme</b>
+      <p>Sayfaları tek tek veya topluca döndür, sırala, kopyala, sil veya otomatik boşluk algılama ile kenarlardan kırp.</p>
+    </div>
+    <div class="qcard">
+      <b>🔍 OCR & Çoklu Format</b>
+      <p>Taranmış PDF ve fotoğraflardan Türkçe/İngilizce metin çıkar; Word, Excel ve görselleri PDF’e dönüştürüp birleştir.</p>
+    </div>
   </div>
   <article class="seo">
-    <h2>Ücretsiz online PDF düzenleyici</h2>
-    <p>PDF Atölyesi ile PDF dosyalarını saniyeler içinde <strong>birleştirebilir</strong>, sayfalarını <strong>sürükleyerek sıralayabilir</strong>, <strong>döndürebilir</strong>, istemediğin sayfaları <strong>silebilir</strong>, <strong>bölebilir</strong> ve kenarlardan <strong>kesebilirsin</strong>; ayrıca sayfaları <strong>JPG veya PNG resim olarak</strong> tek tek ya da toplu indirebilir, metni <strong>Markdown (.md)</strong> dosyasına dönüştürebilirsin. <strong>Word (.docx), Excel, PowerPoint, resim ve metin dosyalarını</strong> da yükleyip PDF’e çevirerek diğer PDF’lerle birleştirebilirsin. Kayıt olmak, program kurmak veya dosya yüklemek gerekmez; her şey tarayıcında çalışır.</p>
+    <h2>Ücretsiz online PDF düzenleyici ve PDF’ten Word’e dönüştürücü</h2>
+    <p>PDF Atölyesi ile PDF dosyalarını saniyeler içinde <strong>birleştirebilir</strong>, sayfalarını <strong>sürükleyerek sıralayabilir</strong>, <strong>döndürebilir</strong>, istemediğin sayfaları <strong>silebilir</strong>, <strong>bölebilir</strong> ve kenarlardan <strong>kesebilirsin</strong>; ayrıca sayfaları <strong>Word (.docx)</strong>, <strong>JPG / PNG resim</strong> veya <strong>Markdown (.md)</strong> dosyasına dönüştürebilirsin. <strong>Word (.docx), Excel, PowerPoint, resim ve metin dosyalarını</strong> da yükleyip PDF’e çevirerek diğer PDF’lerle birleştirebilirsin. Kayıt olmak, program kurmak veya dosya yüklemek gerekmez; her şey tarayıcında çalışır.</p>
     <h3>Sık sorulan sorular</h3>
-    <details><summary>Word (docx) dosyasını PDF’e nasıl çeviririm?</summary><p>.docx dosyasını diğer dosyalar gibi sürükleyip bırak; sayfalara ayrılır. İstersen başka PDF’lerle birleştirip “PDF’i indir” de. Excel (.xlsx, .csv), PowerPoint (.pptx, yalnızca metin), TXT, MD ve HTML dosyaları da aynı şekilde çevrilir. Çevrilen sayfalar resim olarak eklendiği için yazılar PDF içinde seçilemez; Markdown çıktısında ise metin korunur.</p></details>
-    <details><summary>Resimden veya taranmış PDF’ten yazı nasıl çıkarırım (OCR)?</summary><p>JPG/PNG resmini ya da taranmış PDF’i yükle, “Markdown / OCR” butonuna bas. Metni olmayan sayfalar otomatik olarak OCR ile okunur; dili seçebilirsin (Türkçe + İngilizce varsayılan). Sonucu düzenleyip .md olarak indirebilir veya kopyalayabilirsin. OCR tarayıcında çalışır, dosyaların cihazından çıkmaz. Net ve düz çekilmiş fotoğraflarda sonuç daha doğru olur.</p></details>
-    <details><summary>Dosyalarım bir sunucuya yükleniyor mu?</summary><p>Hayır. Tüm işlemler tarayıcında yapılır, dosyaların cihazından dışarı çıkmaz.</p></details>
-    <details><summary>PDF’leri nasıl birleştiririm?</summary><p>Birden fazla PDF’i sürükleyip bırak, sayfaları istediğin sıraya diz ve “PDF’i indir” butonuna bas.</p></details>
-    <details><summary>PDF’i nasıl bölerim?</summary><p>İstediğin sayfaları seç, “Ayrı PDF” ile tek dosya olarak ya da “ZIP” ile her sayfayı ayrı PDF olarak indir.</p></details>
-    <details><summary>PDF’i JPG veya PNG’ye nasıl çeviririm?</summary><p>PDF’i yükle, çevirmek istediğin sayfaları seç (hiçbirini seçmezsen hepsi çevrilir) ve “JPG / PNG” butonuna bas. Biçimi ve çözünürlüğü seç; sayfaları tek ZIP ya da ayrı ayrı indirebilirsin. Her sayfanın kartındaki 🖼 butonu o sayfayı tek başına indirir.</p></details>
-    <details><summary>PDF’i Markdown’a (.md) nasıl çeviririm?</summary><p>PDF’i yükle, istediğin sayfaları seç (seçmezsen hepsi çevrilir) ve “Markdown” butonuna bas. Başlıklar, listeler ve tablolar otomatik algılanır; sonucu pencerede düzenleyip .md olarak indirebilir, panoya kopyalayabilir veya her sayfayı ayrı .md dosyası olarak ZIP’le alabilirsin. Taranmış PDF’lerde ve resimlerde OCR devreye girer.</p></details>
-    <details><summary>Telefonda çalışır mı?</summary><p>Evet. Sayfaya uzun basıp sürükleyebilir veya ◀ ▶ oklarıyla taşıyabilirsin.</p></details>
+    <details><summary>PDF’i Word’e (docx) tabloları ve biçimlendirmeyi koruyarak nasıl çeviririm?</summary><p>PDF’i yükle, çevirmek istediğin sayfaları seç (seçmezsen tüm sayfalar çevrilir) ve üst menüdeki “Word’e çevir” butonuna bas. Tablo kenarlıkları, birleştirilmiş hücreler, yazı tipleri, punto büyüklükleri, kalın/italik vurgular, renkler ve paragraf hizalamaları birebir korunarak düzenlenebilir Word (.docx) olarak indirilir.</p></details>
+    <details><summary>Word (docx) dosyasını PDF’e nasıl çeviririm?</summary><p>.docx dosyasını diğer dosyalar gibi sürükleyip bırak; sayfalara ayrılır. İstersen başka PDF’lerle birleştirip “PDF’i indir” de. Excel (.xlsx, .csv), PowerPoint (.pptx, yalnızca metin), TXT, MD ve HTML dosyaları da aynı şekilde çevrilir.</p></details>
+    <details><summary>Resimden veya taranmış PDF’ten yazı nasıl çıkarırım (OCR)?</summary><p>JPG/PNG resmini ya da taranmış PDF’i yükle, “Markdown / OCR” veya “Word’e çevir” butonuna bas. Metni olmayan sayfalar otomatik olarak OCR ile okunur; dili seçebilirsin (Türkçe + İngilizce varsayılan).</p></details>
+    <details><summary>Dosyalarım bir sunucuya yükleniyor mu?</summary><p>Hayır. Tüm işlemler doğrudan tarayıcında yapılır, dosyaların cihazından dışarı çıkmaz.</p></details>
+    <details><summary>PDF’leri nasıl birleştirir veya bölerim?</summary><p>Birden fazla PDF’i sürükleyip bırak, sayfaları istediğin sıraya diz ve “PDF’i indir” butonuna bas. Bölmek için istediğin sayfaları seçip alt çubuktan “Ayrı PDF” veya “ZIP” seçeneğini kullan.</p></details>
   </article>
 </section>
 
 <main id="ed" hidden>
+  <div class="ed-bar" id="edBar">
+    <div class="file-chips" id="fileChips"></div>
+    <div class="ed-tools">
+      <button class="btn sm" id="bRotAllL" title="Tüm sayfaları sola döndür">⟲ Sola</button>
+      <button class="btn sm" id="bRotAllR" title="Tüm sayfaları sağa döndür">⟳ Sağa</button>
+      <button class="btn sm" id="bRevOrder" title="Sayfa sırasını ters çevir">⇅ Ters sırala</button>
+      <div class="zoom-seg" id="zoomSeg" title="Kart görünüm boyutu">
+        <button data-z="sm">Küçük</button>
+        <button data-z="md" class="on">Normal</button>
+        <button data-z="lg">Büyük</button>
+      </div>
+    </div>
+  </div>
   <div id="grid"></div>
   <div class="status" id="st"></div>
 </main>
 
 <div class="bulk" id="bulk">
   <b id="bc"></b>
-  <button class="btn" data-b="ml">◀</button><button class="btn" data-b="mr">▶</button>
-  <button class="btn" data-b="l">⟲</button><button class="btn" data-b="r">⟳</button>
-  <button class="btn" data-b="c">⧉ Kopyala</button><button class="btn" data-b="k">✂ Kes</button>
-  <button class="btn" data-b="i">🖼 JPG/PNG</button><button class="btn" data-b="m">📝 MD</button><button class="btn" data-b="s">Ayrı PDF</button><button class="btn" data-b="z">ZIP</button>
-  <button class="btn dg" data-b="d">🗑 Sil</button><button class="btn" data-b="x">✕</button>
+  <button class="btn" data-b="ml" title="Seçilileri sola taşı">◀</button>
+  <button class="btn" data-b="mr" title="Seçilileri sağa taşı">▶</button>
+  <button class="btn" data-b="l" title="Seçilileri sola döndür">⟲</button>
+  <button class="btn" data-b="r" title="Seçilileri sağa döndür">⟳</button>
+  <button class="btn" data-b="c" title="Seçilileri çoğalt">⧉ Kopyala</button>
+  <button class="btn" data-b="k" title="Seçilileri kırp">✂ Kırp</button>
+  <button class="btn word-btn" data-b="w" title="Seçili sayfaları Word (.docx) yap">📄 Word</button>
+  <button class="btn" data-b="i" title="Seçili sayfaları JPG/PNG yap">🖼 Resim</button>
+  <button class="btn" data-b="m" title="Seçili sayfaları Markdown/OCR aç">📝 MD</button>
+  <button class="btn" data-b="s" title="Seçili sayfaları tek PDF olarak indir">⬇ Seçili PDF</button>
+  <button class="btn" data-b="z" title="Her sayfayı ayrı PDF olarak ZIP’le indir">📦 ZIP</button>
+  <button class="btn dg" data-b="d" title="Seçili sayfaları sil">🗑 Sil</button>
+  <button class="btn" data-b="x" title="Seçimi kaldır">✕</button>
 </div>
+
 <nav id="dock">
-  <button class="btn" data-t="#bAdd">＋ Ekle</button>
-  <button class="btn" id="dUndo" data-t="#bUndo">↶</button>
-  <button class="btn" data-t="#bAll">☑</button>
-  <button class="btn" data-t="#bImg">🖼</button>
-  <button class="btn" data-t="#bMd">MD</button>
-  <button class="btn pri" data-t="#bDl">⬇ İndir</button>
+  <button class="btn" data-t="#bAdd" aria-label="Dosya ekle">＋</button>
+  <button class="btn" id="dUndo" data-t="#bUndo" aria-label="Geri al">↶</button>
+  <button class="btn" data-t="#bAll" aria-label="Tümünü seç">☑</button>
+  <button class="btn" data-t="#bImg" aria-label="JPG / PNG">🖼</button>
+  <button class="btn" data-t="#bMd" aria-label="Markdown / OCR">MD</button>
+  <button class="btn word-btn" data-t="#bWord" aria-label="Word">W</button>
+  <button class="btn pri" data-t="#bDl">⬇ PDF</button>
 </nav>
 
 <dialog id="id">
-  <div class="dh"><span>🖼 Resim olarak indir</span><span id="in" style="color:var(--ac);font-weight:700"></span></div>
+  <div class="dh"><span>🖼 Resim olarak indir</span><span id="in" class="badge"></span></div>
   <div class="ib">
-    <div class="fld"><label>Biçim</label>
-      <div class="seg"><input type="radio" name="fm" id="fm1" value="jpg" checked><label for="fm1">JPG<small>küçük dosya</small></label><input type="radio" name="fm" id="fm2" value="png"><label for="fm2">PNG<small>kayıpsız</small></label></div></div>
-    <div class="fld"><label for="idpi">Çözünürlük</label>
-      <select id="idpi"><option value="72">72 DPI · hızlı, küçük</option><option value="150" selected>150 DPI · normal</option><option value="200">200 DPI · iyi</option><option value="300">300 DPI · yüksek (baskı)</option></select></div>
-    <div class="fld"><label for="imode">Nasıl indirilsin?</label>
-      <select id="imode"><option value="zip">Tek ZIP dosyası</option><option value="sep">Ayrı ayrı (her sayfa ayrı dosya)</option></select></div>
+    <div class="fld"><label>Görsel Biçimi</label>
+      <div class="seg"><input type="radio" name="fm" id="fm1" value="jpg" checked><label for="fm1">JPG<small>Küçük dosya boyutu</small></label><input type="radio" name="fm" id="fm2" value="png"><label for="fm2">PNG<small>Kayıpsız net kalite</small></label></div></div>
+    <div class="fld"><label for="idpi">Çözünürlük (Kalite)</label>
+      <select id="idpi"><option value="72">72 DPI · Hızlı, düşük boyut</option><option value="150" selected>150 DPI · Standart ekran kalitesi</option><option value="200">200 DPI · Yüksek netlik</option><option value="300">300 DPI · Baskı kalitesi (Ultra)</option></select></div>
+    <div class="fld"><label for="imode">İndirme Şekli</label>
+      <select id="imode"><option value="zip">Tek ZIP arşiv dosyası</option><option value="sep">Ayrı ayrı (her sayfa tek dosya)</option></select></div>
   </div>
-  <div class="df"><button class="btn" id="iX">İptal</button><button class="btn pri" id="iO">⬇ İndir</button></div>
+  <div class="df"><button class="btn" id="iX">İptal</button><button class="btn pri" id="iO">⬇ Görselleri İndir</button></div>
 </dialog>
+
 <dialog id="md">
-  <div class="dh"><span>📝 Markdown olarak indir</span><span id="mn" style="color:var(--ac);font-weight:700"></span></div>
-  <div class="opts"><label><input type="checkbox" id="mTbl" checked> Tabloları algıla</label><label><input type="checkbox" id="mSep" checked> Sayfalar arasına ayraç (---)</label><label><input type="checkbox" id="mZip"> Her sayfa ayrı .md (ZIP)</label>
-    <label><input type="checkbox" id="mOcr" checked> OCR: resim ve taranmış sayfaları oku</label>
-    <label>Dil <select id="mLang"><option value="tur+eng" selected>Türkçe + İngilizce</option><option value="tur">Türkçe</option><option value="eng">İngilizce</option><option value="deu">Almanca</option><option value="fra">Fransızca</option><option value="spa">İspanyolca</option><option value="ita">İtalyanca</option><option value="rus">Rusça</option><option value="ara">Arapça</option></select></label></div>
+  <div class="dh"><span id="mTitle">📝 Markdown & OCR Stüdyosu</span><span id="mn" class="badge"></span></div>
+  <div class="opts">
+    <label><input type="checkbox" id="mTbl" checked> Tabloları algıla</label>
+    <label><input type="checkbox" id="mSep" checked> Sayfalar arası ayraç</label>
+    <label><input type="checkbox" id="mZip"> Her sayfa ayrı .md (ZIP)</label>
+    <label><input type="checkbox" id="mOcr" checked> OCR: Taranmış sayfaları oku</label>
+    <label>Dil <select id="mLang"><option value="tur+eng" selected>Türkçe + İngilizce</option><option value="tur">Türkçe</option><option value="eng">İngilizce</option><option value="deu">Almanca</option><option value="fra">Fransızca</option><option value="spa">İspanyolca</option><option value="ita">İtalyanca</option><option value="rus">Rusça</option><option value="ara">Arapça</option></select></label>
+  </div>
   <div id="mProg" hidden style="padding:0 20px 10px"><div id="mPt" style="font-size:13px;color:var(--ac);font-weight:600;margin-bottom:6px"></div><div class="bar"><i id="mPb"></i></div></div>
-  <div style="padding:0 20px 8px"><textarea class="mt" id="mTxt" spellcheck="false" aria-label="Markdown önizleme"></textarea><div style="font-size:12px;color:var(--mu);margin-top:6px">Metni burada düzenleyebilirsin; indirilen dosya bu metindir.</div></div>
-  <div class="df"><button class="btn" id="mX">Kapat</button><button class="btn" id="mC">⧉ Kopyala</button><button class="btn pri" id="mO">⬇ .md indir</button></div>
+  <div style="padding:0 20px 8px"><textarea class="mt" id="mTxt" spellcheck="false" aria-label="Markdown önizleme"></textarea><div style="font-size:12px;color:var(--mu);margin-top:6px">Metni burada düzenleyebilirsin. Word (.docx) butonuna basarsan tablolar ve biçimlendirmeler korunarak indirilir.</div></div>
+  <div class="df"><button class="btn" id="mX">Kapat</button><button class="btn" id="mC">⧉ Kopyala</button><button class="btn" id="mWi" title="Sayfaları birebir görüntü olarak Word’e koyar">🖼 Word (Görüntü)</button><button class="btn word-btn" id="mW">📄 Word (.docx)</button><button class="btn pri" id="mO">⬇ .md İndir</button></div>
 </dialog>
+
 <dialog id="cd">
-  <div class="dh"><span>✂ Sayfayı kes</span><span style="color:var(--mu);font-weight:500;font-size:13px">Köşelerden tutup sürükle</span></div>
-  <div class="db"><div class="cw"><img id="ci" alt="Kesilecek sayfa"><div class="cr" id="cr"><i style="left:0;top:0" data-h="nw"></i><i style="left:50%;top:0" data-h="n"></i><i style="left:100%;top:0" data-h="ne"></i><i style="left:100%;top:50%" data-h="e"></i><i style="left:100%;top:100%" data-h="se"></i><i style="left:50%;top:100%" data-h="s"></i><i style="left:0;top:100%" data-h="sw"></i><i style="left:0;top:50%" data-h="w"></i></div></div></div>
-  <div class="df"><button class="btn" id="cX">İptal</button><button class="btn dg" id="cN">Kesmeyi kaldır</button><button class="btn" id="cA">Tüm sayfalara</button><button class="btn" id="cS">Seçililere</button><button class="btn pri" id="cO">Bu sayfaya uygula</button></div>
+  <div class="dh">
+    <span>✂ Sayfayı Kırp</span>
+    <span id="cInfo" class="badge">Sol: %6 · Üst: %6 · Sağ: %6 · Alt: %6</span>
+  </div>
+  <div class="crop-bar">
+    <span class="crop-hint">Köşe ve kenar tutamaçlarını sürükleyin veya hazır ayar seçin:</span>
+    <div class="crop-presets">
+      <button type="button" class="btn sm" data-cp="0">Sıfırla (%0)</button>
+      <button type="button" class="btn sm" data-cp="0.04">İnce (%4)</button>
+      <button type="button" class="btn sm" data-cp="0.08">Normal (%8)</button>
+      <button type="button" class="btn sm" data-cp="0.14">Geniş (%14)</button>
+      <button type="button" class="btn sm word-btn" id="cAuto" title="Sayfadaki beyaz kenar boşluklarını otomatik algılayıp kırpar">✨ Otomatik Boşluk Kırp</button>
+    </div>
+  </div>
+  <div class="db">
+    <div class="cw" id="cw">
+      <img id="ci" alt="Kesilecek sayfa">
+      <div class="cr" id="cr">
+        <div class="cg" aria-hidden="true"></div>
+        <span class="ch" style="left:0;top:0" data-h="nw"></span>
+        <span class="ch" style="left:50%;top:0" data-h="n"></span>
+        <span class="ch" style="left:100%;top:0" data-h="ne"></span>
+        <span class="ch" style="left:100%;top:50%" data-h="e"></span>
+        <span class="ch" style="left:100%;top:100%" data-h="se"></span>
+        <span class="ch" style="left:50%;top:100%" data-h="s"></span>
+        <span class="ch" style="left:0;top:100%" data-h="sw"></span>
+        <span class="ch" style="left:0;top:50%" data-h="w"></span>
+      </div>
+    </div>
+  </div>
+  <div class="df">
+    <button class="btn" id="cX">İptal</button>
+    <button class="btn dg" id="cN">Kırpmayı Kaldır</button>
+    <button class="btn" id="cA">Tüm Sayfalara</button>
+    <button class="btn" id="cS">Seçililere</button>
+    <button class="btn pri" id="cO">✓ Bu Sayfaya Uygula</button>
+  </div>
 </dialog>
-<div id="busy"><div id="bt">İşleniyor…</div></div>
-<div class="fd">Bırak, eklensin ⬇</div>
+
+<dialog id="pd">
+  <div class="dh">
+    <span id="pTitle">🔍 Sayfa Önizleme</span>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button class="btn sm" id="pPrev" title="Önceki sayfa">◀ Önceki</button>
+      <span id="pIdx" class="badge">1 / 1</span>
+      <button class="btn sm" id="pNext" title="Sonraki sayfa">Sonraki ▶</button>
+    </div>
+  </div>
+  <div class="db" id="pBody">
+    <img id="pi" alt="Sayfa önizleme" style="max-width:100%;max-height:66vh;border-radius:8px;box-shadow:0 10px 35px rgba(0,0,0,.35);background:#fff">
+  </div>
+  <div class="df">
+    <button class="btn" id="pRotL">⟲ Sola Döndür</button>
+    <button class="btn" id="pRotR">⟳ Sağa Döndür</button>
+    <button class="btn" id="pCrop">✂ Kırp</button>
+    <button class="btn word-btn" id="pWord">📄 Bu Sayfayı Word İndir</button>
+    <button class="btn pri" id="pX">Kapat</button>
+  </div>
+</dialog>
+
+<div id="busy"><div class="busy-box"><div class="sp-lg"></div><div id="bt">İşleniyor…</div></div></div>
+<div class="fd">Dosyaları Bırak, Eklensin ⬇</div>
 <div class="tonoz">Created by <b>Tonoz</b></div>
 <noscript><p style="padding:20px">PDF Atölyesi’ni kullanmak için JavaScript’i etkinleştir. PDF birleştirme, bölme, sıralama, döndürme, silme ve kesme işlemleri tarayıcında yapılır.</p></noscript>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="app.js"></script>
